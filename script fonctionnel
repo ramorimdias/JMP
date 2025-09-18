@@ -1,0 +1,80 @@
+Names Default To Here( 1 );
+
+T1 = Today();
+dt = Current Data Table();
+
+// GET COLUMN NAMES
+ColNameList = dt << Get Column Names();
+
+// AUTOMATICALLY CALCULATE Col_Min and Col_Max for each column
+For( i = 1, i <= N Items( ColNameList ), i++,
+    min_var = Round( ColMinimum( Column( ColNameList[i] ) ), 2 );
+    max_var = Round( ColMaximum( Column( ColNameList[i] ) ), 2 );
+    Eval( Substitute( Expr(min_Col), Expr(min_ColName), min_var ) );
+    Eval( Substitute( Expr(max_Col), Expr(max_ColName), max_var ) );
+);
+
+// CREATE EMPTY LISTS
+List_A = {};
+List_B = {};
+List_C = {};
+List_D = {};
+List_E = {};
+List_F = {};
+List_G = {};
+List_Sum = {};
+
+// POPULATE LISTS
+For( a = Eval( Parse( "min_" || Char( ColNameList[1] ) ) ), a <= Eval( Parse( "max_" || Char( ColNameList[1] ) ) ), a += 0.1,
+    For( b = Eval( Parse( "min_" || Char( ColNameList[2] ) ) ), b <= Eval( Parse( "max_" || Char( ColNameList[2] ) ) ), b += 0.1,
+        If( a + b >= 1.015, Break() );
+        For( c = Eval( Parse( "min_" || Char( ColNameList[3] ) ) ), c <= Eval( Parse( "max_" || Char( ColNameList[3] ) ) ), c += 0.1,
+            If( a + b + c >= 1.015, Break() );
+            For( d = Eval( Parse( "min_" || Char( ColNameList[4] ) ) ), d <= Eval( Parse( "max_" || Char( ColNameList[4] ) ) ), d += 0.2,
+                If( a + b + c + d >= 1.015, Break() );
+                For( e = Eval( Parse( "min_" || Char( ColNameList[5] ) ) ), e <= Eval( Parse( "max_" || Char( ColNameList[5] ) ) ), e += 0.2,
+                    If( a + b + c + d + e >= 1.015, Break() );
+                    For( f = Eval( Parse( "min_" || Char( ColNameList[6] ) ) ), f <= Eval( Parse( "max_" || Char( ColNameList[6] ) ) ), f += 0.1,
+                        If( a + b + c + d + e + f >= 1.015, Break() );
+                        For( g = Eval( Parse( "min_" || Char( ColNameList[7] ) ) ), g <= Eval( Parse( "max_" || Char( ColNameList[7] ) ) ), g += 0.1,
+                            If( a + b + c + d + e + f + g >= 1.015, Break() );
+
+                            // --- CALCULATE SUM AND APPLY CONSTRAINTS ---
+                            Sum_Mixt = a + b + c + d + e + f + g;
+
+                            If(
+                                (0.990 <= Sum_Mixt <= 1.010) &   // Sum constraint
+                                ((b == 0 & c == 0) | (b != 0 & c == 0) | (b == 0 & c != 0)) &  // Constraint 1
+                                ((d == 0 & e != 0) | (e == 0 & d != 0) | (d != 0 & e != 0)),   // Constraint 2
+                                
+                                Insert Into( List_A, a );
+                                Insert Into( List_B, b );
+                                Insert Into( List_C, c );
+                                Insert Into( List_D, d );
+                                Insert Into( List_E, e );
+                                Insert Into( List_F, f );
+                                Insert Into( List_G, g );
+                                Insert Into( List_Sum, Sum_Mixt );
+                            );
+                        );
+                    );
+                );
+            );
+        );
+    );
+);
+
+// CREATE TABLE "Mixture"
+dt_Mixture = New Table( "Mixture" );
+dt_Mixture << New Column( Char( ColNameList[1] ), Continuous, Set Values( List_A ) );
+dt_Mixture << New Column( Char( ColNameList[2] ), Continuous, Set Values( List_B ) );
+dt_Mixture << New Column( Char( ColNameList[3] ), Continuous, Set Values( List_C ) );
+dt_Mixture << New Column( Char( ColNameList[4] ), Continuous, Set Values( List_D ) );
+dt_Mixture << New Column( Char( ColNameList[5] ), Continuous, Set Values( List_E ) );
+dt_Mixture << New Column( Char( ColNameList[6] ), Continuous, Set Values( List_F ) );
+dt_Mixture << New Column( Char( ColNameList[7] ), Continuous, Set Values( List_G ) );
+dt_Mixture << New Column( "Sum", Continuous, Set Values( List_Sum ) );
+
+T2 = Today();
+Time = T2 - T1;
+Show( Time );
