@@ -6,13 +6,16 @@ dt = Current Data Table();
 // GET COLUMN NAMES
 ColNameList = dt << Get Column Names();
 
-// AUTOMATICALLY CALCULATE Col_Min and Col_Max for each column
+// AUTOMATICALLY CALCULATE column minima and maxima (7 components expected)
+colMinList = {};
+colMaxList = {};
 For( i = 1, i <= N Items( ColNameList ), i++,
-    min_var = Round( ColMinimum( Column( ColNameList[i] ) ), 2 );
-    max_var = Round( ColMaximum( Column( ColNameList[i] ) ), 2 );
-    Eval( Substitute( Expr(min_Col), Expr(min_ColName), min_var ) );
-    Eval( Substitute( Expr(max_Col), Expr(max_ColName), max_var ) );
+    Insert Into( colMinList, Round( ColMinimum( Column( ColNameList[i] ) ), 2 ) );
+    Insert Into( colMaxList, Round( ColMaximum( Column( ColNameList[i] ) ), 2 ) );
 );
+
+// On suppose que les 7 premières colonnes correspondent aux composants du mélange
+
 
 // CREATE EMPTY LISTS
 List_A = {};
@@ -25,18 +28,18 @@ List_G = {};
 List_Sum = {};
 
 // POPULATE LISTS
-For( a = Eval( Parse( "min_" || Char( ColNameList[1] ) ) ), a <= Eval( Parse( "max_" || Char( ColNameList[1] ) ) ), a += 0.1,
-    For( b = Eval( Parse( "min_" || Char( ColNameList[2] ) ) ), b <= Eval( Parse( "max_" || Char( ColNameList[2] ) ) ), b += 0.1,
+For( a = colMinList[1], a <= colMaxList[1], a += 0.1,
+    For( b = colMinList[2], b <= colMaxList[2], b += 0.1,
         If( a + b >= 1.015, Break() );
-        For( c = Eval( Parse( "min_" || Char( ColNameList[3] ) ) ), c <= Eval( Parse( "max_" || Char( ColNameList[3] ) ) ), c += 0.1,
+        For( c = colMinList[3], c <= colMaxList[3], c += 0.1,
             If( a + b + c >= 1.015, Break() );
-            For( d = Eval( Parse( "min_" || Char( ColNameList[4] ) ) ), d <= Eval( Parse( "max_" || Char( ColNameList[4] ) ) ), d += 0.2,
+            For( d = colMinList[4], d <= colMaxList[4], d += 0.2,
                 If( a + b + c + d >= 1.015, Break() );
-                For( e = Eval( Parse( "min_" || Char( ColNameList[5] ) ) ), e <= Eval( Parse( "max_" || Char( ColNameList[5] ) ) ), e += 0.2,
+                For( e = colMinList[5], e <= colMaxList[5], e += 0.2,
                     If( a + b + c + d + e >= 1.015, Break() );
-                    For( f = Eval( Parse( "min_" || Char( ColNameList[6] ) ) ), f <= Eval( Parse( "max_" || Char( ColNameList[6] ) ) ), f += 0.1,
+                    For( f = colMinList[6], f <= colMaxList[6], f += 0.1,
                         If( a + b + c + d + e + f >= 1.015, Break() );
-                        For( g = Eval( Parse( "min_" || Char( ColNameList[7] ) ) ), g <= Eval( Parse( "max_" || Char( ColNameList[7] ) ) ), g += 0.1,
+                        For( g = colMinList[7], g <= colMaxList[7], g += 0.1,
                             If( a + b + c + d + e + f + g >= 1.015, Break() );
 
                             // --- CALCULATE SUM AND APPLY CONSTRAINTS ---
